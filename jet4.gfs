@@ -1,0 +1,63 @@
+Define LEVEL 7
+
+2 1 GfsSimulation GfsBox GfsGEdge {} {
+  # Limit the maximum timestep to 1e-2 so that the initial diffusion
+  # is properly resolved
+  # Time { end = 0.7 }
+  Time { end = 0.5 }
+
+  # Use an initial refinement of 8 levels around the solid boundary
+  Refine LEVEL
+
+  # Insert the solid boundary defined implicitly by the 
+  # ellipse() function
+  # Solid (x*x + y*y + z*z - 0.003) { ty = -0.3 }
+
+  SourceViscosity {} 5e-7
+
+
+  # Dirichlet boundary condition for T on the cylinder
+  # SurfaceBc T Dirichlet 1
+
+  # Adapt the mesh using the vorticity criterion at every timestep
+  # down to a maximum level of 8 if y is smaller than 1.5, 0
+  # otherwise.  The topmost part of the domain will not be refined and
+  # will act as a very efficient "sponge" layer to damp any eddies
+  # before they exit the domain.
+  # AdaptVorticity { istep = 1 } { maxlevel = 7 minlevel = 4 cmax = 5e-3 }
+
+  # Writes the time and timestep every 10 timesteps on standard error
+  OutputTime { istep = 1 } stderr
+
+  # Writes the simulation size every 10 timesteps on standard error
+  OutputBalance { istep = 0 } stderr
+
+  # Writes info about the convergence of the Poisson solver on standard error
+  OutputProjectionStats { istep = 10 } stderr
+
+  # Outputs profiling information at the end of the simulation to standard error
+  OutputTiming { istep = 100 } stderr
+
+  # Write out timestep data
+  OutputSimulation { step = 0.001 } tmp_%04ld_%04d.nrrd { binary=1 format=NRRD variables=U,V,W }
+
+  EventScript { start = 0 } {
+    echo "step;time;FILE" > data.csv
+  }
+
+  EventScript { step = 0.001 } {
+    ./gerris-merge-nrrd.py ${GfsIter} ${GfsTime} LEVEL v_$(printf %04d ${GfsIter}).vti && \
+    rm tmp_$(printf %04d ${GfsIter})_????.nrrd
+    echo "${GfsIter};${GfsTime};v_$(printf %04d ${GfsIter}).vti" >> data.csv
+  }
+}
+# The bottom boundary will also allow inflow (despite its name)
+GfsBox { 
+  bottom = Boundary { 
+    BcDirichlet V ((x*x + z*z < 0.016) ? 10 : 0)
+  } 
+}
+GfsBox {
+  top = BoundaryOutflow
+}
+1 2 top

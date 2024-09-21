@@ -1,0 +1,20 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: Jet Flow Simulation
+message: version 4
+type: dataset
+authors:
+  - orcid: 'https://orcid.org/0000-0003-1669-8549'
+    given-names: Christoph
+    family-names: Garth
+    email: garth@rptu.de
+    affiliation: >-
+      Rheinland-Pfälzische Technische Universität
+      Kaiserslautern-Landau
+abstract: >-
+  This is a family of simulation of a jet flow, created using the
+  Gerris Flow Solver. The use case is as a benchmark dataset
+  for flow visualization algorithms.
+license: CC-BY-NC-SA-4.0
